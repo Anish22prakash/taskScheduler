@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "ycaQH1Q51OnW6wiW2oLCj8qczqfvPBXLFl+d3aX0uPs=",
+  "Source": "TaskSchedulerAPI",
+  "BasePath": "_content/TaskSchedulerAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
