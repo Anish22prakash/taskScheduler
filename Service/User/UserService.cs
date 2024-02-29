@@ -5,17 +5,19 @@ using TaskSchedulerAPI.DtoModels;
 using TaskSchedulerAPI.Model;
 using TaskSchedulerAPI.Common;
 using TaskSchedulerAPI.Helper;
+using TaskSchedulerAPI.LoggerService;
 
 namespace TaskSchedulerAPI.Service.User
 {
     public class UserService : IUserService
     {
         private readonly ApplicationDbContext  _context;
-        private readonly ILogger<UserService> _logger;
+        //private readonly ILogger<UserService> _logger;
+        private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
 
-        public UserService(ApplicationDbContext context, ILogger<UserService> logger
+        public UserService(ApplicationDbContext context, ILoggerManager logger
             , IMapper mapper , IConfiguration configuration)
         {
             _context = context;
@@ -44,12 +46,13 @@ namespace TaskSchedulerAPI.Service.User
 
                 await _context.Users.AddAsync(newUser);
                await _context.SaveChangesAsync();
-                _logger.LogInformation($"user data is successfully save ,with userId{newUser.UserId}");
+                _logger.LogInfo($"user data is successfully save ,with userId{newUser.UserId}");
                 return newUser.UserId;
             }
             catch (Exception ex)
             {
-                this._logger.LogError(default(EventId), ex, "createUserAsync", userDto.ToString());
+                //_logger.LogError(default(EventId), ex, "createUserAsync", userDto.ToString());
+                _logger.LogError($"method createUserAsync {userDto.ToString()}");
                 throw;
             }
         }
@@ -65,12 +68,12 @@ namespace TaskSchedulerAPI.Service.User
                     return null;
                 }
                
-                _logger.LogInformation($"user data is successfully retrived ,with userId{exUser.UserId}");
+                _logger.LogInfo($"user data is successfully retrived ,with userId{exUser.UserId}");
                 return exUser;
             }
             catch (Exception ex)
             {
-                this._logger.LogError(default(EventId), ex, "getUserAsync", id);
+                this._logger.LogError($"method getUserAsync ,userId: {id}");
                 throw;
             }
         }

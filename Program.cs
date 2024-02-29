@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.Text;
 using TaskSchedulerAPI.Data;
+using TaskSchedulerAPI.LoggerService;
 using TaskSchedulerAPI.Model;
 using TaskSchedulerAPI.Service.Auth;
 using TaskSchedulerAPI.Service.TaskAssignment;
@@ -24,6 +25,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IAuthenticateService , AuthenticateService>();
 builder.Services.AddTransient<ITaskAssignmentService , TaskAssignmentService>();
+builder.Services.AddSingleton<ILoggerManager , LoggerManager>();
+
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var appSettingSection = builder.Configuration.GetSection("AppSettings");
@@ -78,7 +81,7 @@ builder.Services.AddSwaggerGen(opt =>
         }
     });
 });
-
+NLog.LogManager.LoadConfiguration("LoggerService/nlog.config");
 
 var app = builder.Build();
 

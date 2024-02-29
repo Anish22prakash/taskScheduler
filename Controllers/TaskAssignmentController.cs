@@ -10,10 +10,10 @@ namespace TaskSchedulerAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin,User")]
     public class TaskAssignmentController(ITaskAssignmentService assignmentService) : ControllerBase
     {
         [HttpPost , Route("RegisterTask")]
-        [Authorize(Roles ="Admin")]
         public async Task<IActionResult> RegisterTask(RegisterTaskDto taskDto)
         {
             if (ModelState.IsValid)
@@ -36,7 +36,6 @@ namespace TaskSchedulerAPI.Controllers
         }
 
         [HttpGet, Route("GetAllTask")]
-        [Authorize(Roles = "User")]
         public async Task<IActionResult> GetAllTask(int userId)
         {
             if (userId > 0)
@@ -56,7 +55,6 @@ namespace TaskSchedulerAPI.Controllers
         }
 
         [HttpGet, Route("GetTaskByTaskId")]
-        [Authorize(Roles = "User")]
         public async Task<IActionResult> GetTaskByTaskId(int taskId)
         {
             if (taskId > 0)
@@ -71,12 +69,11 @@ namespace TaskSchedulerAPI.Controllers
                     return Ok(new { success = false, statusCode = 400, error = $"Failed to retrived Task by taskId : {taskId}" });
                 }
             }
-            return BadRequest(new { success = false, statusCode = 400, errors = $"userId not valid {taskId}" });
+            return BadRequest(new { success = false, statusCode = 400, errors = $"taskId not valid {taskId}" });
         }
 
 
         [HttpPatch, Route("UpdateByTaskId")]
-        [Authorize(Roles = "User")]
         public async Task<IActionResult> UpdateByTaskId(int taskId , int statusId)
         {
             if (taskId > 0 && statusId > 0)
@@ -92,6 +89,24 @@ namespace TaskSchedulerAPI.Controllers
                 }
             }
             return BadRequest(new { success = false, statusCode = 400, errors = $"taskId/statusId not valid ,taskid {taskId}" });
+        }
+
+        [HttpDelete, Route("DeleteTaskByTaskId")]
+        public async Task<IActionResult> DeleteTaskByTaskId(int taskId)
+        {
+            if (taskId > 0)
+            {
+                var data = await assignmentService.DeleteTaskAssignmentAsync(taskId);
+                if (data != null)
+                {
+                    return Ok(new { success = true, statusCode = 200, data = data });
+                }
+                else
+                {
+                    return Ok(new { success = false, statusCode = 400, error = $"Failed to delete Task by taskId : {taskId}" });
+                }
+            }
+            return BadRequest(new { success = false, statusCode = 400, errors = $"taskID not valid {taskId}" });
         }
     }
 }

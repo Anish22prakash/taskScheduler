@@ -8,6 +8,7 @@ using System.Text;
 using TaskSchedulerAPI.Common;
 using TaskSchedulerAPI.Data;
 using TaskSchedulerAPI.Helper;
+using TaskSchedulerAPI.LoggerService;
 using TaskSchedulerAPI.Model;
 using TaskSchedulerAPI.Service.User;
 
@@ -17,9 +18,9 @@ namespace TaskSchedulerAPI.Service.Auth
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
-        private readonly ILogger<AuthenticateService> _logger;
+        private readonly ILoggerManager _logger;
 
-        public AuthenticateService(ApplicationDbContext context , ILogger<AuthenticateService>  logger
+        public AuthenticateService(ApplicationDbContext context , ILoggerManager logger
             ,IConfiguration configuration)
         {
             _context = context;
@@ -28,46 +29,57 @@ namespace TaskSchedulerAPI.Service.Auth
         }
         public async Task<(string userToken, int userId)?> Authenticate(string userEmail, string password)
         {
-
-            var exUser = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
-            if (exUser == null)
+            try
             {
-                return null;
+                _logger.LogError("you are enter in authenticate page");
+                var exUser = await _context.Users.FirstOrDefaultAsync(u => u.UserEmail == userEmail);
+                if (exUser == null)
+                {
+                    _logger.LogWarning($" user email is not valid");
+                    return null;
+                }
+                var pepper = _configuration["AppSettings:pepper"];
+                var iteration = _configuration["AppSettings:iteration"];
+                var passwordHash = PasswordHasher.ComputeHash(password, exUser.PasswordSalt, pepper, Convert.ToInt32(iteration));
+                if (exUser.PasswordHash != passwordHash)
+                {
+                    _logger.LogWarning($" user password is not valid");
+                    return null;
+                }
+
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = Encoding.ASCII.GetBytes(_configuration["AppSettings:Key"]);
+                var claims = new List<Claim>();
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, userEmail));
+                if (exUser.UserRole == Convert.ToInt32(Enums.Roles.Admin))
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+                }
+                else
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, "User"));
+                }
+                var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(claims),
+                    Expires = DateTime.Now.AddDays(1),
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                };
+                var token = tokenHandler.CreateToken(tokenDescriptor);
+                exUser.Token = tokenHandler.WriteToken(token);
+
+                _context.Users.Update(exUser);
+                await _context.SaveChangesAsync();
+                _logger.LogInfo($" user is successfully loggedin with userEmail : {userEmail}");
+                return (exUser.Token, exUser.UserId);
             }
-            var pepper = _configuration["AppSettings:pepper"];
-            var iteration = _configuration["AppSettings:iteration"];
-            var passwordHash = PasswordHasher.ComputeHash(password, exUser.PasswordSalt, pepper, Convert.ToInt32(iteration));
-            if (exUser.PasswordHash != passwordHash)
+            catch (Exception ex)
             {
-                return null;
+                _logger.LogError($"method :Authenticate , {userEmail} , {password}");
+                throw;
             }
-
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["AppSettings:Key"]);
-            var claims = new List<Claim>();
-            claims.Add(new Claim(ClaimTypes.NameIdentifier, userEmail));
-            if (exUser.UserRole == Convert.ToInt32(Enums.Roles.Admin))
-            {
-                claims.Add(new Claim(ClaimTypes.Role, "Admin"));
-            }
-            else
-            {
-                claims.Add(new Claim(ClaimTypes.Role, "User"));
-            }
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(1),
-                SigningCredentials =    new SigningCredentials(new SymmetricSecurityKey(key),SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            exUser.Token = tokenHandler.WriteToken(token);
-
-            _context.Users.Update(exUser);
-            await _context.SaveChangesAsync();
-
-            return (exUser.Token, exUser.UserId);
+            
         }
     }
 }

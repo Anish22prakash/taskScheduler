@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using TaskSchedulerAPI.Common;
 using TaskSchedulerAPI.Data;
 using TaskSchedulerAPI.DtoModels;
+using TaskSchedulerAPI.LoggerService;
 using TaskSchedulerAPI.Model;
 using TaskSchedulerAPI.Service.User;
 
@@ -12,10 +13,10 @@ namespace TaskSchedulerAPI.Service.TaskAssignment
     public class TaskAssignmentService : ITaskAssignmentService
     {
         private readonly ApplicationDbContext _context;
-        private readonly ILogger<TaskAssignmentService> _logger;
+        private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
 
-        public TaskAssignmentService(ApplicationDbContext dbContext , ILogger<TaskAssignmentService> logger , IMapper mapper)
+        public TaskAssignmentService(ApplicationDbContext dbContext , ILoggerManager logger , IMapper mapper)
         {
             _context = dbContext;
             _logger = logger;
@@ -45,12 +46,33 @@ namespace TaskSchedulerAPI.Service.TaskAssignment
 
                await _context.TaskAssignments.AddAsync(newTask);
                await _context.SaveChangesAsync();
-                _logger.LogInformation($"task data is successfully saved ,with taskId{newTask.TaskId}");
+                _logger.LogInfo($"task data is successfully saved ,with taskId{newTask.TaskId}");
                 return newTask.TaskId;
             }
             catch (Exception ex)
             {
-                this._logger.LogError(default(EventId), ex, "CreateTaskAssignmentAsync", taskDto.ToString());
+                this._logger.LogError($"method name : ,CreateTaskAssignmentAsync , {taskDto.ToString()}");
+                throw;
+            }
+        }
+
+        public async Task<string> DeleteTaskAssignmentAsync(int taskId)
+        {
+            try
+            {
+               Model.TaskAssignment? exTask = await _context.TaskAssignments.FirstOrDefaultAsync(u => u.TaskId == taskId);
+                if(exTask == null)
+                {
+                    _logger.LogInfo($"task assigment is not found by given taskId : {taskId}");
+                    return null;
+                }
+                _context.TaskAssignments.Remove(exTask);
+              await  _context.SaveChangesAsync();
+                _logger.LogInfo($"task is successfully deleted , taskId: {taskId}");
+                return "task is successfully deleted";
+            }catch (Exception ex)
+            {
+                _logger.LogError($"method name : DeleteTaskAssignmentAsync , taskId :{taskId}");
                 throw;
             }
         }
@@ -66,12 +88,12 @@ namespace TaskSchedulerAPI.Service.TaskAssignment
                     return null;
                 }
 
-                _logger.LogInformation($"task data is successfully retrived ,with userId{exTask.TaskId}");
+                _logger.LogInfo($"task data is successfully retrived ,with userId{exTask.TaskId}");
                 return exTask;
             }
             catch (Exception ex)
             {
-                this._logger.LogError(default(EventId), ex, "GetTaskAssignmentAsync", taskId);
+                this._logger.LogError($"method name : GetTaskAssignmentAsync ,taskId : {taskId}");
                 throw;
             }
         }
@@ -90,13 +112,13 @@ namespace TaskSchedulerAPI.Service.TaskAssignment
                             .Where(t => t.UserId == userId)
                             .ToListAsync();
 
-                _logger.LogInformation($"list of task data is successfully retrived ,with userId {userId}");
+                _logger.LogInfo($"list of task data is successfully retrived ,with userId {userId}");
                 return taskAssignments;
                
             }
             catch (Exception ex)
             {
-                this._logger.LogError(default(EventId), ex, "GetTaskAssignmentByUserID", userId);
+                this._logger.LogError($"method name :, GetTaskAssignmentByUserID ,userId :{userId}");
                 throw;
             }
         }
@@ -122,13 +144,13 @@ namespace TaskSchedulerAPI.Service.TaskAssignment
                 _context.TaskAssignments.Update(exTask);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"task data is successfully update ,with taskId {TaskId}");
+                _logger.LogInfo($"task data is successfully update ,with taskId {TaskId}");
                 return "successfully task status is updated";
 
             }
             catch (Exception ex)
             {
-                this._logger.LogError(default(EventId), ex, "UpdateTaskStatus", TaskId);
+                this._logger.LogError($"method name : UpdateTaskStatus ,taskId : {TaskId}");
                 throw;
             }
         }

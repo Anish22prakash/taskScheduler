@@ -137,3 +137,8 @@ C:\HARD DRIVE\asp.net_web_Api_projects\TaskSchedulerAPI\TaskSchedulerAPI\obj\Deb
 C:\HARD DRIVE\asp.net_web_Api_projects\TaskSchedulerAPI\TaskSchedulerAPI\bin\Debug\net8.0\AutoMapper.dll
 C:\HARD DRIVE\asp.net_web_Api_projects\TaskSchedulerAPI\TaskSchedulerAPI\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
 C:\HARD DRIVE\asp.net_web_Api_projects\TaskSchedulerAPI\TaskSchedulerAPI\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\HARD DRIVE\asp.net_web_Api_projects\TaskSchedulerAPI\TaskSchedulerAPI\bin\Debug\net8.0\LoggerService\nlog.config
+C:\HARD DRIVE\asp.net_web_Api_projects\TaskSchedulerAPI\TaskSchedulerAPI\bin\Debug\net8.0\NLog.dll
+C:\HARD DRIVE\asp.net_web_Api_projects\TaskSchedulerAPI\TaskSchedulerAPI\bin\Debug\net8.0\NLog.Extensions.Logging.dll
+C:\HARD DRIVE\asp.net_web_Api_projects\TaskSchedulerAPI\TaskSchedulerAPI\bin\Debug\net8.0\NLog.Web.AspNetCore.dll
+C:\HARD DRIVE\asp.net_web_Api_projects\TaskSchedulerAPI\TaskSchedulerAPI\obj\Debug\net8.0\TaskSchedulerAPI.sourcelink.json

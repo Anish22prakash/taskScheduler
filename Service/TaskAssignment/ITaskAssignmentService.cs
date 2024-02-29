@@ -9,5 +9,6 @@ namespace TaskSchedulerAPI.Service.TaskAssignment
         public Task<Model.TaskAssignment?> GetTaskAssignmentAsync(int taskId);
         public Task<IList<Model.TaskAssignment>> GetTaskAssignmentByUserID(int userId);
         public Task<string> UpdateTaskStatus(int TaskId , int  StatusId);
+        public Task<string> DeleteTaskAssignmentAsync(int taskId);
     }
 }
